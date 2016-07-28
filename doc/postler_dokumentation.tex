@@ -1,0 +1,503 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage{textcomp}
+\usepackage[german]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[table,usenames,dvipsnames]{xcolor}
+\usepackage{etoolbox}
+\usepackage{eso-pic,graphicx}
+\usepackage[bottom=1.90in, top=3.50in]{geometry}
+\usepackage{lastpage}
+\usepackage{listings}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{url}
+\usepackage{titlesec}
+\titleclass{\subsubsubsection}{straight}[\subsection]
+
+\newcounter{subsubsubsection}[subsubsection]
+
+\renewcommand\thesubsubsubsection{\thesubsubsection.\arabic{subsubsubsection}}
+\renewcommand\theparagraph{\thesubsubsubsection.\arabic{paragraph}}
+\renewcommand\thesubparagraph{\theparagraph.\arabic{subparagraph}}
+
+\titleformat{\subsubsubsection}
+  {\normalfont\normalsize\bfseries}{\thesubsubsubsection}{1em}{}
+\titlespacing*{\subsubsubsection}
+{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+
+\makeatletter
+\renewcommand\paragraph{\@startsection{paragraph}{5}{\z@}%
+  {3.25ex \@plus1ex \@minus.2ex}%
+  {-1em}%
+  {\normalfont\normalsize\bfseries}}
+\renewcommand\subparagraph{\@startsection{subparagraph}{6}{\parindent}
+  {3.25ex \@plus1ex \@minus .2ex}%
+  {-1em}%
+  {\normalfont\normalsize\bfseries}}
+\def\toclevel@subsubsubsection{4}
+\def\toclevel@paragraph{5}
+\def\toclevel@paragraph{6}
+\def\l@subsubsubsection{\@dottedtocline{4}{7em}{4em}}
+\def\l@paragraph{\@dottedtocline{5}{10em}{5em}}
+\def\l@subparagraph{\@dottedtocline{6}{14em}{6em}}
+\@addtoreset{subsubsubsection}{section}
+\@addtoreset{subsubsubsection}{subsection}
+\@addtoreset{paragraph}{subsubsubsection}
+\makeatother
+
+\setcounter{secnumdepth}{6}
+\setcounter{tocdepth}{6}
+
+\setlength{\footskip}{90pt}
+
+\definecolor{text_color}{HTML}{7B7549}
+\definecolor{footer_color}{HTML}{393937}
+\definecolor{header_color}{HTML}{7B93A1}
+\definecolor{row_color1}{HTML}{BCC8CE}
+\definecolor{row_color2}{HTML}{AEBDC5}
+
+\color{text_color}
+\lstset{
+    breaklines=true,
+    postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}}
+}
+
+\lstdefinestyle{bash}{
+    language=bash,
+    numbers=left,
+    numberstyle=\tiny,
+    numbersep=8pt,
+    columns=fullflexible,
+    frame=single,
+    backgroundcolor=\color{black},
+    breaklines=true,
+    postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}}
+}
+
+\lstdefinestyle{Lua}
+{
+  language         = {[5.2]Lua},
+  basicstyle       = \ttfamily,
+  showstringspaces = false,
+  upquote          = true,
+}
+
+\makeatletter % change only the display of \thepage, but not \thepage itself:
+\patchcmd{\ps@plain}{\thepage}{\textcolor{footer_color}{\textbf {\thepage} von \pageref{LastPage}}}{}{}
+\makeatother
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt plus 2pt minus 1pt}
+
+\AddToShipoutPictureBG{%
+  \AtPageLowerLeft{\includegraphics[width=\paperwidth,height=\paperheight]{postler_laufend.png}}
+}
+
+\newcolumntype{$}{>{\global\let\currentrowstyle\relax\color{white}}}
+\newcolumntype{^}{>{\currentrowstyle\color{white}}}
+\newcommand{\rowstyle}[1]{\gdef\currentrowstyle{#1}%
+  #1\ignorespaces
+}
+\newcommand\tableheader{%
+  \rowcolor{header_color}\rowstyle{\bfseries\color{white}}}
+
+\rowcolors{1}{row_color1}{row_color2}
+
+\title{Postler}
+\author{Richard Lamboj}
+\date{2015}
+
+\begin{document}
+\pagestyle{plain} % after changing a pagestyle command, it's necessary to invoke it explicitly
+\AddToShipoutPictureBG*{%
+  \AtPageLowerLeft{\includegraphics[]{postler_deckblatt.png}}
+  }
+
+\thispagestyle{empty}
+\mbox{}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Einführung}
+
+In dieser Dokumentation wird die Installation und Wartung des Mail-Delivery-Aagent Postler erklärt.
+
+\subsection{Einsatzbereich}
+
+Postler ist für die Filterung und Zustellung von E-Mails auf einem E-Mail Server zuständig. Filterregel müssen nicht mehr Aufwändig auf den unterschiedlichen E-Mail Clients definiert werden, sondern direkt am Server.
+
+\subsection{Funktionsweise}
+
+Benutzer A (a@mailserver.at) schreibt eine E-Mail, mit hilfe eines Mail-User-Agent (MUA), auch E-Mail-Client genannt, und möchte diese Benutzer B (b@mailserver.at) zukommen lassen.
+
+Als Mail-User-Agent benutzt dieser KMail und sendet die E-Mail über das Protokolle SMTP an den Mail-Transfer-Agent (MTA), welcher auf dem Server läuft, der sich hinter mailserver.at verbiergt.
+
+Auf dem Server kommt Postfix als MTA zum Einsatz, dieser kann einen Mail-Delivery-Agent (MDA) einsetzen, um die E-Mails zustellen zu lassen.
+
+Hier kommt Postler zum Einsatz, der als Mail-Delivery-Agent die E-Mails entgegen nimmt und sie in das Maildir des Benutzers einsortiert, so wie es in der Filterkonfiguration hinterlegt ist. Die Filterregeln verlangen es, dass die E-Mail von Benutzer A in dem Ordner ``Freunde/A'' einsortiert werden.
+
+Maildir ist eines von vielen Möglichkeiten, die zu verwaltenden E-Mails abzulegen.
+
+Benutzer B greift nun mithilfe des Mail-User-Agent Thunderbird auf sein Maildir zu und zwar über das Protokoll IMAP (Internet Message Access Protocol), welches der Message Store versteht, der es ermöglicht, auf das Maildir zuzugreifen.
+
+\newpage
+
+\section{Installation}
+
+\subsection{Debian 7 (Wheezy), ohne Paketmanager}
+
+\begin{lstlisting}[style=bash,caption={Installation unter Debian 7 (Wheezy)}]
+apt-get install python
+wget http://www.unicom.ws/downloads/postler/postler-1.2.0.0.zip
+unzip postler-1.2.0.0.zip
+mv postler /opt/
+cp /opt/postler/etc/postler /etc
+\end{lstlisting}
+
+
+\subsection{Debian 7 (Wheezy), mittels Paketmanager}
+
+Die 64bit Version kann problemslos neben der 32bit Version installiert und betrieben werden, sofern das System 64bit fähig ist und darauf ein 64bit Kernel betrieben wird.
+
+\begin{lstlisting}[style=bash,caption={Installation unter Debian 7 (Wheezy)}]
+# (32bit und 64bit Systemen) Installation von Postler in der 32bit Variante
+wget http://www.unicom.ws/downloads/postler/postler-1.2.0.0_32bit.deb
+dpkg -i postler-1.2.0.0_32bit.deb
+# (Nur auf 64bit Systemen) Installation der 64bit Version von Postler
+wget http://www.unicom.ws/downloads/postler/postler-1.2.0.0_64bit.deb
+dpkg -i postler-1.2.0.0_64bit.deb
+# (Optional) Installation der Beispiel Konfiguration
+wget http://www.unicom.ws/downloads/postler/postler-config.deb
+dpkg -i postler-config.deb
+# (Optional) Installation der Dokumentation
+wget http://www.unicom.ws/downloads/postler/postler-doc.deb
+dpkg -i postler-doc.deb
+# (Optional) installation der Test E-Mails
+wget http://www.unicom.ws/downloads/postler/postler-test-data.deb
+dpkg -i postler-test-data.deb
+\end{lstlisting}
+
+\begin{lstlisting}[caption={Ordnerstruktur unter Debian}]
+/
+\
+ |opt
+ |  \
+ |   |postler
+ |           \
+ |            |
+ |            |bin
+ |            |   \
+ |            |    |postler
+ |            |    |config
+ |            |           \
+ |            |            |__init__.py
+ |            |            |liblua.so
+ |            |            |lua.so
+ |            |            |tps.so
+ |            |
+ |            |bin64
+ |            |     \
+ |            |      |postler
+ |            |      |config
+ |            |             \
+ |            |              |__init__.py
+ |            |              |liblua.so
+ |            |              |lua.so
+ |            |              |tps.so
+ |            |doc
+ |            |   \
+ |            |    |postler_dokumentation.doc
+ |            |
+ |            |test
+ |                 \
+ |                  |ebay.mail
+ |                  |spam.mail
+ |                  |tde_devel.mail
+ |                  |unicom2.mail
+ |                  |virus.mail
+ |                  |README
+ |                  |tde_commits.mail
+ |                  |tde_users.mail
+ |                  |unicom.mail
+ |                  |willhaben.mail
+ |etc
+     \
+      |postler
+              \
+               |config.lua
+               |config.tps
+
+\end{lstlisting}
+
+\subsection{Regeln definieren}
+
+Regeln können in der Sprache TPS (The Postler sLang), oder Lua definiert werden.
+
+Postler kennt an der Dateiendung der Konfiguration, ob es sich um TPS, oder Lua handelt.
+
+Endet die Konfigurationsdatei mit ».tps«, dann wird diese als The Postler sLang interpretiert, sollte die Datei mit ».lua« enden, dann kommt der Lua-Interpreter zum Einsatz.
+
+\subsubsection{TPS}
+
+The Postler sLang ist eine einfache Filtersprache.
+
+\subsubsubsection{Reservierte Schlüsselwörter}
+
+Der Begriff Schlüsselwort bezeichnet in einer Programmiersprache ein Wort, das eine durch die Definition dieser Programmiersprache bestimmte Bedeutung hat, und nicht als Name von Variablen oder Funktionen verwendet werden darf.
+
+\begin{lstlisting}
+and end false if local or set then true
+\end{lstlisting}
+
+\subsubsubsection{Variablen}
+
+Variablen können Werte annehmen und werden am Ende von Postler ausgewertet.
+
+Mit »set« kann eine Variable gesetzt werden:
+
+set Variabelname = Variabelinhalt
+
+Momentan werden nur die beiden Variablen »folder« und »create dir« ausgewertet.
+
+Variablen können nur zwischen »then« und »end if« definiert werden.
+
+Die Variable »folder« kann nur Text beinhalten, dieser muss zwischen doppelten Anführungszeichen stehen, damit dem Interpreter von Postler bekannt ist, wo Text anfängt und wieder aufhört, anderseits wäre es dem Interpreter nicht möglich zwischen Text als Variablen-Inhalt und den weiteren Anweisungen zu unterscheiden.
+
+Die Variable »create dir« kann nur True (Wahr), oder False (Falsch) beinhalten. Diese beiden möglichen Werte müssen nicht in Anführungszeichen geführt werden, da hierbei keine Möglichkeit besteht, den Interpreter ungewollt zu beinflussen.
+
+\subsubsubsection{Felder}
+
+Felder können nur in einer Wenn-Abfrage benutzt werden und werden aus dem Header der E-Mail erzeugt.
+
+\subsubsubsection{Wenn-Abfragen (if)}
+
+Wenn-Abfragen (if) unterstützen derzeit nur ist-gleich (==) und ist-nicht-gleich (!=), als Vergleichsoperator. Diese können mit Klammern gruppiert werden und mit and (und), sowie or (oder) verknüpft werden.
+
+\subsubsubsection{Beispiele}
+
+Im unteren Beispiel wird geprüft, ob das Feld »X-Spam« im E-Mail-Header auf »YES« gesetzt ist, wenn ja wird die Variable »folder« auf »Spam« gesetzt und »create dir« auf »True«.
+
+Sollten keine weiteren Regeln diese beiden Variablen verändern wird die E-Mail in den Ordner Spam eingeordet, wenn im Header das Feld »X-Spam« auf »YES« gesetzt ist. Sollte der Ordner nicht existieren, dann wird dieser erstellt, da »create dir« auf »True« gesetzt ist.
+
+\begin{lstlisting}
+if (X-Spam == "YES") then
+    set create dir = True
+    set folder = "Spam"
+end if 
+\end{lstlisting}
+
+Wenn keine Regel zutrifft, dann wird die E-Mail direkt in dem Maildir des Benutzers abgelegt.
+
+\begin{lstlisting}
+if (X-Spam == "YES") then
+    set create dir = True
+    set folder = "Spam"
+end if
+
+if (X-Virus == "YES") then
+    set create dir = True
+    set folder = "Virus"
+end if
+
+if (regex("[\w]*@unicom.ws", From) == True) then
+    set create dir = True
+    set folder = "Mitarbeiter"
+end if
+
+if (From == "cl@unicom.ws") then
+    set create dir = True
+    set folder = "Mitarbeiter/Carina Leuthner"
+end if
+
+if (From == "trinity-users-help@lists.pearsoncomputing.net" or To == "trinity-users@lists.pearsoncomputing.net") then
+    set create dir = True
+    set folder = "TDE/users"
+end if
+
+if (From == "trinity-devel-help@lists.pearsoncomputing.net" or To == "trinity-devel@lists.pearsoncomputing.net") then
+    set create dir = True
+    set folder = "TDE/devel"
+end if
+
+if (From == "trinity-commits-help@lists.pearsoncomputing.net" or To == "trinity-commits@lists.pearsoncomputing.net") then
+    set create dir = True
+    set folder = "TDE/commits"
+end if
+
+if (From == "opensuse-kde3+help@opensuse.org" or To == "opensuse-kde3@opensuse.org") then
+    set create dir = True
+    set folder = "openSuSE/KDE3"
+end if
+
+if (regex("ebay.[a-zA-Z]{2,3}", From) == True) then
+    set create dir = True
+    set folder = "eBay"
+end if
+
+if (regex("willhaben.at", From) == True) then
+    set create dir = True
+    set folder = "willhaben"
+end if
+
+if (regex("info@bmd-baustoffe.de", From) == True) then
+    set create dir = True
+    set folder = "BMD Baustoffe"
+end if
+
+\end{lstlisting}
+
+\subsubsection{Lua}
+
+Lua ist eine Scriptsprache, welche sich durch eine hohe Geschwindigkeit auszeichnet. Postler unterstützt Lua in der Version 5.3.1.
+
+\subsubsubsection{Reservierte Schlüsselwörter}
+
+Der Begriff Schlüsselwort bezeichnet in einer Programmiersprache ein Wort, das eine durch die Definition dieser Programmiersprache bestimmte Bedeutung hat, und nicht als Name von Variablen oder Funktionen verwendet werden darf.
+
+\begin{lstlisting}[style=Lua]
+and break do else elseif end false for function goto if in local nil not or repeat return then true until while
+\end{lstlisting}
+
+\subsubsubsection{Variablen}
+
+Variablen können Werte aufnehmen. So lange die Variablen nicht explizit gelöscht werden und Postler noch nicht beendet wurde, bleiben diese erhalten und können verändert, sowie ausgelesen werden.
+
+In Lua werden Variablen folgendermaßen definiert:
+Auf der linken Seite steht der Variablenname, darauf folgt der Zuweißungsoperator »=« und auf der rechten Seite steht der Wert. Werte können auch von anderen Variablen übernommen werden, oder auch von einer Funktion erhalten werden.
+
+\begin{lstlisting}[style=Lua]
+variable1 = "test"
+zahl1 = 1
+zahl2 = 2
+zahl3 = zahl1
+-- Der Additionsoperator addiert zahl2 mit zahl1 und speichert das Ergebnis in die Variable zahl4
+zahl4 = zahl2 + zahl1
+-- Der Wert 23 ist hier keine Zahl, sondern eine Zeichenkette. Da der Additionsoperator angewandt wird, wird die Zeichenkette 23 in die Zahl 23 umgewandelt.
+zahl4 = 1 + "23"
+vorname = "Hans"
+nachname = "Wurst"
+
+-- Der Verbindungsoperator ".." verbindet die Werte der zwei Variablen und erwartet als Werte Zeichenketten.
+name = vorname .. nachname
+name 
+
+function berechne_flaeche(a, b)
+    return a*b
+end
+
+-- Ruft die Funktion berechne_flaeche auf und uebergibt ihr die Zahlen 1 und 2 als Parameter, diese berechnet die Flaeche und gibt den Wert zurueck, welcher durch den Zuweißungsoperator "=" der Variable flaeche zugewiesen wird.
+flaeche = berechne_flaeche(1, 2)
+
+\end{lstlisting}
+
+\subsubsubsection{Beispiele}
+
+\begin{lstlisting}[style=Lua]
+if header['X-Spam'] == 'YES' then
+    folder = "Spam"
+    create_dir = true
+end
+
+if header['X-Virus'] == "YES" then
+    create_dir = true
+    folder = "Virus"
+end
+
+if (regex("[\\w]*@unicom.ws", header['From']) == true) then
+    create_dir = true
+    folder = "Mitarbeiter"
+end
+
+if (header['From'] == "cl@unicom.ws") then
+    create_dir = true
+    folder = "Mitarbeiter/Carina Leuthner"
+end
+
+if (header['From'] == "trinity-users-help@lists.pearsoncomputing.net" or header['To'] == "trinity-users@lists.pearsoncomputing.net") then
+    create_dir = true
+    folder = "TDE/users"
+end
+
+if (header['From'] == "trinity-devel-help@lists.pearsoncomputing.net" or header['To'] == "trinity-devel@lists.pearsoncomputing.net") then
+    create_dir = true
+    folder = "TDE/devel"
+end
+
+if (header['From'] == "trinity-commits-help@lists.pearsoncomputing.net" or header['To'] == "trinity-commits@lists.pearsoncomputing.net") then
+    create_dir = true
+    folder = "TDE/commits"
+end
+
+if (header['From'] == "opensuse-kde3+help@opensuse.org" or header['To'] == "opensuse-kde3@opensuse.org") then
+    create_dir = true
+    folder = "openSuSE/KDE3"
+end
+
+if (regex("ebay.[a-zA-Z]{2,3}", header['From']) == true) then
+    create_dir = true
+    folder = "eBay"
+end
+\end{lstlisting}
+
+\subsubsection{Ungültige Regeln, Fehlerhafte Konfiguration}
+
+Wenn das definierte Regelwerk fehlerhaft sein sollte und Postler die Überprüfung abbrechen muss, dann werden die E-Mails direkt in das Maildir des Benutzers abgelegt. Empfangene E-Mails gehen demnach nicht verloren.
+
+Sobald Sie die Fehlerhaften stellen Ihrer Konfiguration bereinigt haben, können Sie mit dem »--clean-up« Parameter das Postfach eurneut sortieren lassen.
+
+\subsubsection{Konfiguration testen}
+
+\begin{lstlisting}[style=bash,caption={Test der Konfiguration}]
+/opt/postler/postler.py --username=test --maildir=/home/test/maildir --config=/etc/postler/config.tps --self-test --test-data-dir=/opt/postler/test
+\end{lstlisting}
+
+\begin{tabular}{ | $ p{3cm} | ^ p{10.8cm} | }
+% \begin{tabularx}{\textwidth}{|l|X|}
+    \hline
+    \tableheader
+    Parameter & Beschreibung \\
+    --username & Führt Postler unter dem User ``test'' aus.\\
+    --maildir & Setzt ``/home/test/maildir'' als Maildir.\\
+    --config & Bezieht die Filterregeln aus der Datei``/etc/postler/config.tps''.\\
+    --self-test & Führt einen Selbsttest durch.\\
+    --test-data-dir & Benutzt die in dem Ordner ``/opt/postler/test'' hinterlegten E-Mails für den Test.\\
+\end{tabular}
+
+\newpage
+
+\subsection{Vorhandene Postfächer sortieren}
+\begin{lstlisting}[style=bash,caption={E-Mails in den vorhanden Postfächern sortieren}]
+for USER in /home/*
+    do /opt/postler/postler.py --username=$USER --maildir=/home/$USER/maildir --config=/etc/postler/config.tps --clean-up
+done
+\end{lstlisting}
+
+\begin{tabular}{ | $ p{3cm} | ^ p{10.8cm} | }
+    \hline
+    \tableheader
+    Parameter & Beschreibung \\
+    --username & Führt Postler unter den angegebenen Usernamen aus.\\
+    --maildir & Gibt den Pfad zu dem Benutzer-maildir an.\\
+    --config & Setzt den Pfad zur Konfiguration, welche die Filterregeln beinhaltet.\\
+    --clean-up & Sortiert das Postfach, nach den Filteregeln, welche in der Konfigurationsdatei definiert wurden.\\
+\end{tabular}
+
+\subsection{Postler als MDA von Postfix}
+\begin{lstlisting}
+
+/etc/postfix/main.cf:
+    mailbox_command = /opt/postler/postler.py --username=${USER} --maildir=/home/${USER}/maildir --config=/etc/postler/config.tps
+\end{lstlisting}
+
+\begin{tabular}{ | $ p{3cm} | ^ p{10.8cm} | }
+    \hline
+    \tableheader
+    Parameter & Beschreibung \\
+    --username & Führt Postler unter den angegebenen Usernamen aus.\\
+    --maildir & Gibt den Pfad zu dem Benutzer-maildir an.\\
+    --config & Setzt den Pfad zur Konfiguration, welche die Filterregeln beinhaltet.\\
+\end{tabular}
+
+\end{document}

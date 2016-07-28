@@ -1,0 +1,2 @@
+Sample for a self-test:
+postler.py --username=rl --maildir=/home/rl/maildir --config=/etc/postler/config.tps --self-test --test-data-dir=/opt/postler/test

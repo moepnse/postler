@@ -1,0 +1,11 @@
+Package: postler
+Version: 1.2.0.0-0
+Section: non-free/net
+Priority: extra
+Architecture: $ARCH
+Depends: python2.7, postler-config
+Installed-Size: $INSTALLED_SIZE
+Maintainer: Richard Lamboj <rl@unicom.ws>
+Homepage: www.unicom.ws
+Description: Postler MDA (Mail-Delivery-Agent)
+ Mail-Delivery-Agent developed by unicom.

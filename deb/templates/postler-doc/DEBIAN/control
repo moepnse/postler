@@ -1,0 +1,11 @@
+Package: postler-doc
+Version: 1.2.0.0-0
+Section: non-free/net
+Priority: extra
+Architecture: all
+Depends:
+Installed-Size: $INSTALLED_SIZE
+Maintainer: Richard Lamboj <rl@unicom.ws>
+Homepage: www.unicom.ws
+Description: Postler MDA (Mail-Delivery-Agent) Documentation
+ Documentation for Postler.
